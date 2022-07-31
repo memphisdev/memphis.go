@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ "staging", "master" ]
+
+jobs:
+
+  run-broker-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Download docker-compose file
+      run: |
+          curl -s https://memphisdev.github.io/memphis-docker/docker-compose-dev-ui.yaml -o docker-compose.yaml
+
+    - name: Run docker-compose file
+      run: docker compose -f docker-compose.yaml -p memphis up -d
+
+    - name: Test
+      run: go test -v
+
+    - name: Stop and remove running containers
+      run: |
+          docker compose down
