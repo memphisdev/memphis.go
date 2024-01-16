@@ -43,6 +43,81 @@ go get github.com/memphisdev/memphis.go
 import "github.com/memphisdev/memphis.go"
 ```
 
+### Quickstart - Producing and Consuming
+
+The most basic functionaly of memphis is the ability to produce messages to a station and to consume those messages. 
+
+First, a connection to Memphis must be made:
+
+```js
+const { memphis } = require('memphis-dev');
+
+// Connecting to the broker
+memphis = Memphis()
+
+let conn, err := memphis.Connect(
+    "<memphis-host>",
+    "<memphis-username>",
+    memphis.AccountId(<memphis-accountid>), //You can find it on the profile page in the Memphis UI. This field should be sent only on the cloud version of Memphis, otherwise it will be ignored
+    memphis.Password(<memphis-password>),
+)
+
+if err != nil{
+    return
+}
+
+defer conn.Close()
+
+```
+
+Then, to produce a message, call the `memphis.produce` function or create a producer and call its `producer.produce` function:
+
+```go
+message := make(map[string]any)
+
+message["Hello"] = "World"
+
+err := conn.Produce(
+    "<station-name>", 
+    "<producer-name>",
+    message,	
+    []memphis.ProducerOpt{}, 
+    []memphis.ProduceOpt{},
+)
+    
+if err != nil{
+    return
+}
+```
+
+Lastly, to consume this message, call the `memphis.fetch_messages` function or create a consumer and call its `consumer.fetch` function:
+
+```go
+messages, err := conn.FetchMessages(
+    "<station-name>",
+    "<consumer-name>",
+)	
+
+if err != nil{
+    return
+}
+
+var msg_map map[string]any
+for _, message := range messages{
+    err = json.Unmarshal(message.Data(), &msg_map)
+    if err != nil{
+        continue
+    }
+
+    // Do something with the message
+
+    err = message.Ack()
+    if err != nil{
+        continue
+    }
+}
+```
+
 ### Connecting to Memphis
 ```go
 c, err := memphis.Connect("<memphis-host>", 

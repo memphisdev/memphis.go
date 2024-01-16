@@ -7,33 +7,36 @@ import (
 	"github.com/memphisdev/memphis.go"
 )
 
-func main() {
-	conn, err := memphis.Connect("localhost", "root", memphis.ConnectionToken("<broker-token>"))
-	if err != nil {
-		fmt.Printf("Connection failed: %v", err)
-		os.Exit(1)
+func main(){
+	conn, err := memphis.Connect(
+		"<memphis-host>",
+		"<memphis-username>",
+		memphis.AccountId(<memphis-accountID>),
+		memphis.Password(<memphis-password>),
+	)
+
+	if err != nil{
+		fmt.Print(err)
+		return
 	}
+
 	defer conn.Close()
-	p, err := conn.CreateProducer("<station-name>", "<producer-name>")
 
-	if err != nil {
-		fmt.Printf("Create Producer failed: %v", err)
-		os.Exit(1)
+	producer, err := conn.CreateProducer("<station-name>", "<producer-name>")
+
+	if err != nil{
+		fmt.Print(err)
+		return
 	}
 
-	hdrs := memphis.Headers{}
-	hdrs.New()
-	err = hdrs.Add("key", "value")
+	message := make(map[string]any)
 
-	if err != nil {
-		fmt.Printf("Header failed: %v", err)
-		os.Exit(1)
+	message["Hello"] = "World"
+	for i := 0; i < 3; i++{
+		err = producer.Produce(message)
 	}
-
-	err = p.Produce([]byte("You have a message!"), memphis.MsgHeaders(hdrs))
-
-	if err != nil {
-		fmt.Printf("Produce failed: %v", err)
-		os.Exit(1)
+		
+	if err != nil{
+		return
 	}
 }
